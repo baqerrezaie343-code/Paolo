@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ماشین حساب حرفه‌ای</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    user-select: none;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    overflow: hidden;
+    padding: 20px;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Floating background orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    z-index: 0;
+  }
+  .orb1 { width: 300px; height: 300px; background: #ff006e; top: -80px; left: -80px; animation: float1 12s ease-in-out infinite; }
+  .orb2 { width: 350px; height: 350px; background: #3a86ff; bottom: -100px; right: -100px; animation: float2 14s ease-in-out infinite; }
+  .orb3 { width: 250px; height: 250px; background: #8338ec; top: 40%; right: 20%; animation: float1 10s ease-in-out infinite; }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(40px, 40px); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-40px, -30px); }
+  }
+
+  .calculator {
+    position: relative;
+    z-index: 1;
+    width: 380px;
+    max-width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    padding: 28px;
+    animation: appear 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .display {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 22px;
+    text-align: left;
+    direction: ltr;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  }
+
+  .history {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 18px;
+    min-height: 24px;
+    word-wrap: break-word;
+    word-break: break-all;
+    transition: 0.2s;
+  }
+
+  .result {
+    color: #fff;
+    font-size: 46px;
+    font-weight: 300;
+    word-wrap: break-word;
+    word-break: break-all;
+    line-height: 1.1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: 0.2s;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  button {
+    border: none;
+    outline: none;
+    padding: 20px 0;
+    font-size: 22px;
+    font-weight: 500;
+    border-radius: 18px;
+    cursor: pointer;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  }
+
+  button:active {
+    transform: translateY(1px) scale(0.96);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .operator {
+    background: linear-gradient(135deg, #f857a6, #ff5858);
+    box-shadow: 0 4px 14px rgba(248, 87, 166, 0.4);
+  }
+  .operator:hover {
+    background: linear-gradient(135deg, #ff6bb5, #ff6b6b);
+  }
+
+  .equals {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    box-shadow: 0 4px 14px rgba(0, 114, 255, 0.5);
+  }
+  .equals:hover {
+    background: linear-gradient(135deg, #1ccfff, #1a82ff);
+  }
+
+  .clear {
+    background: linear-gradient(135deg, #ff9966, #ff5e62);
+    box-shadow: 0 4px 14px rgba(255, 94, 98, 0.4);
+  }
+
+  .function {
+    background: rgba(131, 56, 236, 0.35);
+  }
+  .function:hover {
+    background: rgba(131, 56, 236, 0.55);
+  }
+
+  .zero {
+    grid-column: span 2;
+  }
+
+  /* Ripple effect */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(0);
+    animation: rippleAnim 0.5s linear;
+    pointer-events: none;
+  }
+  @keyframes rippleAnim {
+    to { transform: scale(4); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="calculator">
+    <div class="display">
+      <div class="history" id="history"></div>
+      <div class="result" id="result">0</div>
+    </div>
+
+    <div class="buttons">
+      <button class="clear" onclick="clearAll()">AC</button>
+      <button class="function" onclick="deleteLast()">⌫</button>
+      <button class="function" onclick="percentage()">%</button>
+      <button class="operator" onclick="appendOperator('/')">÷</button>
+
+      <button onclick="appendNumber('7')">7</button>
+      <button onclick="appendNumber('8')">8</button>
+      <button onclick="appendNumber('9')">9</button>
+      <button class="operator" onclick="appendOperator('*')">×</button>
+
+      <button onclick="appendNumber('4')">4</button>
+      <button onclick="appendNumber('5')">5</button>
+      <button onclick="appendNumber('6')">6</button>
+      <button class="operator" onclick="appendOperator('-')">−</button>
+
+      <button onclick="appendNumber('1')">1</button>
+      <button onclick="appendNumber('2')">2</button>
+      <button onclick="appendNumber('3')">3</button>
+      <button class="operator" onclick="appendOperator('+')">+</button>
+
+      <button class="zero" onclick="appendNumber('0')">0</button>
+      <button onclick="appendDecimal()">.</button>
+      <button class="equals" onclick="calculate()">=</button>
+    </div>
+  </div>
+
+<script>
+  const resultEl = document.getElementById('result');
+  const historyEl = document.getElementById('history');
+
+  let currentInput = '0';
+  let expression = '';
+  let resetNext = false;
+
+  function updateDisplay() {
+    resultEl.textContent = currentInput;
+    historyEl.textContent = expression;
+  }
+
+  function appendNumber(num) {
+    if (currentInput === '0' || resetNext) {
+      currentInput = num;
+      resetNext = false;
+    } else {
+      currentInput += num;
+    }
+    updateDisplay();
+  }
+
+  function appendDecimal() {
+    if (resetNext) {
+      currentInput = '0';
+      resetNext = false;
+    }
+    if (!currentInput.includes('.')) {
+      currentInput += '.';
+    }
+    updateDisplay();
+  }
+
+  function appendOperator(op) {
+    const symbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+    expression += currentInput + ' ' + symbols[op] + ' ';
+    resetNext = true;
+    updateDisplay();
+  }
+
+  function clearAll() {
+    currentInput = '0';
+    expression = '';
+    resetNext = false;
+    updateDisplay();
+  }
+
+  function deleteLast() {
+    if (resetNext) return;
+    if (currentInput.length === 1) {
+      currentInput = '0';
+    } else {
+      currentInput = currentInput.slice(0, -1);
+    }
+    updateDisplay();
+  }
+
+  function percentage() {
+    currentInput = (parseFloat(currentInput) / 100).toString();
+    updateDisplay();
+  }
+
+  function calculate() {
+    let fullExpr = expression + currentInput;
+    let evalExpr = fullExpr
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/−/g, '-');
+
+    try {
+      let result = Function('"use strict"; return (' + evalExpr + ')')();
+      if (!isFinite(result)) {
+        currentInput = 'خطا';
+      } else {
+        result = Math.round(result * 1e10) / 1e10;
+        historyEl.textContent = fullExpr + ' =';
+        currentInput = result.toString();
+      }
+      expression = '';
+      resetNext = true;
+      resultEl.textContent = currentInput;
+    } catch (e) {
+      currentInput = 'خطا';
+      expression = '';
+      resetNext = true;
+      resultEl.textContent = currentInput;
+    }
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+    else if (e.key === '.') appendDecimal();
+    else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') appendOperator(e.key);
+    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calculate(); }
+    else if (e.key === 'Backspace') deleteLast();
+    else if (e.key === 'Escape') clearAll();
+    else if (e.key === '%') percentage();
+  });
+
+  // Ripple effect on buttons
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    });
+  });
+
+  updateDisplay();
+</script>
+</body>
+</html>
